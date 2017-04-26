@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//判断有无错误仅返回true或者false
+// 判断有无错误仅返回true或者false
 func hasErr(err error) bool {
 	if err != nil {
 		return true

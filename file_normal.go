@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-//创建文件
+// 创建文件
 func Create(name string) (*os.File, error) {
 	return os.Create(name)
 }

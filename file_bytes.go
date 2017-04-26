@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//bytes 型数据读写操作
+//bytes  型数据读写操作
 
 var gbkDecoder = mahonia.NewDecoder("gbk")
 

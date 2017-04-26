@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-//文件读取对象
+// 文件读取对象
 type FileHelper struct {
 	pFile io.ReadSeeker
 }
