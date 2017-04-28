@@ -2,3 +2,4 @@
 1.bytes  关于bytes类型数据的简单读取操作
 2.readSeeker 关于io.readSeeker 接口类型数据的基本操作
 3.utils 通用文件类型的基本操作
+4.BytesToSepSplitString byte类型数据转化为以某种分隔符分隔的字符串
