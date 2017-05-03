@@ -20,26 +20,26 @@ func BytesToSepSplitString(data []byte, definition []string, sep string) string 
 		dataLen, _ := strconv.Atoi(v[3:])
 		switch dataType {
 		case "0":
-			_, data = FetchString(data, dataLen)
+			_, data = ReadString(data, dataLen)
 		case "s":
-			str, data = FetchString(data, dataLen)
+			str, data = ReadString(data, dataLen)
 		case "i":
 			switch dataLen {
 			case 1:
 				temp := uint8(0)
-				temp, data = FetchUINT8(data)
+				temp, data = ReadUINT8(data)
 				str = strconv.Itoa(int(temp))
 			case 2:
 				temp := uint16(0)
-				temp, data = FetchUINT16(data)
+				temp, data = ReadUINT16(data)
 				str = strconv.Itoa(int(temp))
 			case 4:
 				temp := uint32(0)
-				temp, data = FetchUINT32(data)
+				temp, data = ReadUINT32(data)
 				str = strconv.Itoa(int(temp))
 			case 8:
 				temp := uint64(0)
-				temp, data = FetchUINT64(data)
+				temp, data = ReadUINT64(data)
 				str = strconv.Itoa(int(temp))
 			default:
 				log.Fatal("definition中i的数据类型长度范围必须是1,2,4,8中的其中一种,而当前长度为:", dataLen)
@@ -74,26 +74,26 @@ func BytesToSepSplitStringTrimRight(data []byte, definition []string, sep string
 		dataLen, _ := strconv.Atoi(v[3:])
 		switch dataType {
 		case "0":
-			_, data = FetchString(data, dataLen)
+			_, data = ReadString(data, dataLen)
 		case "s":
-			str, data = FetchString(data, dataLen)
+			str, data = ReadString(data, dataLen)
 		case "i":
 			switch dataLen {
 			case 1:
 				temp := uint8(0)
-				temp, data = FetchUINT8(data)
+				temp, data = ReadUINT8(data)
 				str = strconv.Itoa(int(temp))
 			case 2:
 				temp := uint16(0)
-				temp, data = FetchUINT16(data)
+				temp, data = ReadUINT16(data)
 				str = strconv.Itoa(int(temp))
 			case 4:
 				temp := uint32(0)
-				temp, data = FetchUINT32(data)
+				temp, data = ReadUINT32(data)
 				str = strconv.Itoa(int(temp))
 			case 8:
 				temp := uint64(0)
-				temp, data = FetchUINT64(data)
+				temp, data = ReadUINT64(data)
 				str = strconv.Itoa(int(temp))
 			default:
 				log.Fatal("definition中i的数据类型长度范围必须是1,2,4,8中的其中一种,而当前长度为:", dataLen)
