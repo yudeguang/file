@@ -14,6 +14,7 @@ func WriteAt(name string, b []byte, off int64) error {
 	if hasErr(err) {
 		return err
 	}
+	defer file.Close()
 	_, err = file.WriteAt(b, off)
 	return err
 }
