@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -90,6 +91,13 @@ func Copy(src, dst string) (w int64, err error) {
 //获取无后缀的文件名
 func FileNameNoSuffix(name string) string {
 	return strings.TrimSuffix(filepath.Base(name), filepath.Ext(name))
+}
+
+//获取程序当前目录地址，该地址带/后缀，如:c:/dir/ 注意/与\并无本质区别
+func CurrentDirectory() string {
+	file, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(file)
+	return strings.Replace(path, `\`, `/`, -1)
 }
 
 //遍历目录及下级目录，查找符合后缀文件
