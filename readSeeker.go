@@ -162,8 +162,10 @@ func (this *FileHelper) ReadInt64() (uint64, error) {
 
 //查找数据,从文件的BEGIN位置开始查找S子串，第1次出现的位置,N大于0
 func (this *FileHelper) Index(npos int64, sep []byte) int64 {
+	//先算出最大长度
+	endpos, _ := this.GetFileEndPos()
 	//防止npos超出
-	if _, err := this.pFile.Seek(int64(npos), os.SEEK_SET); err != nil {
+	if _, err := this.pFile.Seek(npos, os.SEEK_SET); err != nil {
 		return -1
 	}
 	//取得截取的待搜索数据长度 20M
@@ -172,11 +174,20 @@ func (this *FileHelper) Index(npos int64, sep []byte) int64 {
 	if nMaxSize < lenSep*2 {
 		nMaxSize = lenSep * 2
 	}
+
 	for {
+		var data []byte
 		curPos, _ := this.GetFilePos()
-		data, _ := this.ReadByte(nMaxSize)
+		// 数据太短，显然已经读取到最后一次,最后一次则全部读取
+		if int(endpos-curPos) < nMaxSize {
+			data, _ = this.ReadByte(int(endpos - curPos))
+		} else {
+			data, _ = this.ReadByte(nMaxSize)
+		}
+
 		newPos := bytes.Index(data, sep)
-		if len(data) < nMaxSize { // 数据太短，显然已经读取到最后一次
+		// 数据太短，显然已经读取到最后一次
+		if len(data) < nMaxSize {
 			if newPos == -1 {
 				return -1
 			} else {
