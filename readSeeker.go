@@ -52,8 +52,8 @@ func (this *FileHelper) Close() {
 }
 
 //移动到文件什么地方
-func (this *FileHelper) MoveTo(npos int) error {
-	_, err := this.pFile.Seek(int64(npos), os.SEEK_SET)
+func (this *FileHelper) MoveTo(npos int64) error {
+	_, err := this.pFile.Seek(npos, os.SEEK_SET)
 	if err != nil {
 		return err
 	}
@@ -70,8 +70,8 @@ func (this *FileHelper) MoveToEnd() error {
 }
 
 //从当前位置移动多少个
-func (this *FileHelper) Move(npos int) error {
-	_, err := this.pFile.Seek(int64(npos), os.SEEK_CUR)
+func (this *FileHelper) Move(npos int64) error {
+	_, err := this.pFile.Seek(npos, os.SEEK_CUR)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (this *FileHelper) ReadInt64() (uint64, error) {
 	return nval, nil
 }
 
-//查找数据,从文件的BEGIN位置开始查找S子串，第1次出现的位置,N大于0
+//查找数据,从文件的npos位置开始查找sep子串，返回第1次出现的位置,npos大于等于0
 func (this *FileHelper) Index(npos int64, sep []byte) int64 {
 	//先算出最大长度
 	endpos, _ := this.GetFileEndPos()
@@ -198,12 +198,12 @@ func (this *FileHelper) Index(npos int64, sep []byte) int64 {
 				return curPos + int64(newPos)
 			}
 		}
-		this.Move(0 - len(sep))
+		this.Move(int64(0 - len(sep)))
 	}
 	return -1
 }
 
-//查找数据,从文件的BEGIN位置开始查找S子串，第N次出现的位置,N大于0
+//查找数据,从文件的npos位置开始查找S子串，第N次出现的位置,N大于0，npos大于等于0
 func (this *FileHelper) IndexN(npos int64, sep []byte, n int) int64 {
 	if n <= 0 {
 		return -1
@@ -224,7 +224,7 @@ func (this *FileHelper) IndexN(npos int64, sep []byte, n int) int64 {
 			return -1
 		} else {
 			//找到一次，那么要移动到这个位置加SEP长度
-			this.MoveTo(int(findPos) + len(sep))
+			this.MoveTo(findPos + int64(len(sep)))
 		}
 	}
 	return findPos
