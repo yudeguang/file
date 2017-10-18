@@ -14,7 +14,6 @@ func WriteAt(name string, b []byte, off int64) error {
 	if err != nil {
 		return err
 	}
-
 	defer file.Close()
 	_, err = file.WriteAt(b, off)
 	return err
@@ -93,13 +92,22 @@ func FileNameNoSuffix(name string) string {
 	return strings.TrimSuffix(filepath.Base(name), filepath.Ext(name))
 }
 
-//获得程序所在当前文件路径
+//获得程序所在当前文件路径 注意末尾不包含/
 func CurrentDirectory() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		panic(err)
 	}
 	return strings.Replace(dir, "\\", "/", -1)
+}
+
+//获取可执行文件的绝对路径（包括文件名）
+func CurrentExeFileName() string {
+	exeName, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		panic(err)
+	}
+	return strings.Replace(exeName, "\\", "/", -1)
 }
 
 //遍历目录及下级目录，查找符合后缀文件
