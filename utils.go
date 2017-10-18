@@ -4,7 +4,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -94,18 +93,13 @@ func FileNameNoSuffix(name string) string {
 	return strings.TrimSuffix(filepath.Base(name), filepath.Ext(name))
 }
 
-//获取程序当前路径
+//获得程序所在当前文件路径
 func CurrentDirectory() string {
-	exeName, _ := exec.LookPath(os.Args[0])
-	path, _ := filepath.Abs(exeName)
-	return strings.Replace(path, `\`, `/`, -1)
-}
-
-//获取当前目录,该地址带/后缀，如:c:/dir/ 注意/与\并无本质区别
-func CurrentCatalog() string {
-	exeName, _ := exec.LookPath(os.Args[0])
-	path, _ := filepath.Abs(exeName)
-	return strings.TrimSuffix(strings.Replace(path, `\`, `/`, -1), exeName)
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		panic(err)
+	}
+	return strings.Replace(dir, "\\", "/", -1)
 }
 
 //遍历目录及下级目录，查找符合后缀文件
