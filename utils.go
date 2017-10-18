@@ -12,9 +12,10 @@ import (
 //打开指定文件，并从指定位置写入数据
 func WriteAt(name string, b []byte, off int64) error {
 	file, err := os.OpenFile(name, os.O_WRONLY, 0666)
-	if hasErr(err) {
+	if err != nil {
 		return err
 	}
+
 	defer file.Close()
 	_, err = file.WriteAt(b, off)
 	return err
@@ -23,7 +24,7 @@ func WriteAt(name string, b []byte, off int64) error {
 //打开指定文件,并在文件末尾写入数据
 func Write(name string, b []byte) error {
 	file, err := os.OpenFile(name, os.O_APPEND, 0666)
-	if hasErr(err) {
+	if err != nil {
 		return err
 	}
 	defer file.Close()
@@ -34,7 +35,7 @@ func Write(name string, b []byte) error {
 //检察文件是否存在
 func Exist(name string) bool {
 	_, err := os.Stat(name)
-	if hasErr(err) {
+	if err != nil {
 		return false
 	}
 	return true
@@ -44,7 +45,7 @@ func Exist(name string) bool {
 func AllowRead(name string) bool {
 	// os.O_RDONLY 读权限
 	_, err := os.OpenFile(name, os.O_RDONLY, 0666)
-	if hasErr(err) {
+	if err != nil {
 		return false
 	}
 	return true
@@ -54,7 +55,7 @@ func AllowRead(name string) bool {
 func AllowWrite(name string) bool {
 	// os.O_WRONLY 写权限
 	_, err := os.OpenFile(name, os.O_WRONLY, 0666)
-	if hasErr(err) {
+	if err != nil {
 		return false
 	}
 	return true
@@ -64,24 +65,24 @@ func AllowWrite(name string) bool {
 func Copy(src, dst string) (w int64, err error) {
 	//打开源文件
 	originalFile, err := os.Open(src)
-	if hasErr(err) {
+	if err != nil {
 		return 0, err
 	}
 	defer originalFile.Close()
 	// 创建新的文件作为目标文件
 	newFile, err := os.Create(dst)
-	if hasErr(err) {
+	if err != nil {
 		return 0, err
 	}
 	defer newFile.Close()
 	// 从源中复制字节到目标文件
 	bytesWritten, err := io.Copy(newFile, originalFile)
-	if hasErr(err) {
+	if err != nil {
 		return 0, err
 	}
 	//将文件内容flush到硬盘中
 	err = newFile.Sync()
-	if hasErr(err) {
+	if err != nil {
 		return 0, err
 	}
 	//最后返回
@@ -93,11 +94,18 @@ func FileNameNoSuffix(name string) string {
 	return strings.TrimSuffix(filepath.Base(name), filepath.Ext(name))
 }
 
-//获取程序当前目录地址，该地址带/后缀，如:c:/dir/ 注意/与\并无本质区别
+//获取程序当前路径
 func CurrentDirectory() string {
-	file, _ := exec.LookPath(os.Args[0])
-	path, _ := filepath.Abs(file)
+	exeName, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(exeName)
 	return strings.Replace(path, `\`, `/`, -1)
+}
+
+//获取当前目录,该地址带/后缀，如:c:/dir/ 注意/与\并无本质区别
+func CurrentCatalog() string {
+	exeName, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(exeName)
+	return strings.TrimSuffix(strings.Replace(path, `\`, `/`, -1), exeName)
 }
 
 //遍历目录及下级目录，查找符合后缀文件
