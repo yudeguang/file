@@ -59,7 +59,7 @@ func AllowWrite(name string) bool {
 	return true
 }
 
-//复制文件
+//复制文件，相对路径绝对路径均可
 func Copy(src, dst string) (w int64, err error) {
 	//打开源文件
 	originalFile, err := os.Open(src)
@@ -70,7 +70,11 @@ func Copy(src, dst string) (w int64, err error) {
 	// 创建新的文件作为目标文件
 	newFile, err := os.Create(dst)
 	if err != nil {
-		return 0, err
+		//如果目标目录不存在，需要先创建目标目录,相对路径及绝对路径均可
+		err = os.MkdirAll(strings.TrimSuffix(dst, filepath.Base(dst)), 0666)
+		if err != nil {
+			return 0, err
+		}
 	}
 	defer newFile.Close()
 	// 从源中复制字节到目标文件
