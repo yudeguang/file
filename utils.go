@@ -70,8 +70,13 @@ func Copy(src, dst string) (w int64, err error) {
 	// 创建新的文件作为目标文件
 	newFile, err := os.Create(dst)
 	if err != nil {
-		//如果目标目录不存在，需要先创建目标目录,相对路径及绝对路径均可
+		//如果目标目录不存在，需要先创建目标目录
 		err = os.MkdirAll(strings.TrimSuffix(dst, filepath.Base(dst)), 0666)
+		if err != nil {
+			return 0, err
+		}
+		//再次尝试创建
+		newFile, err = os.Create(dst)
 		if err != nil {
 			return 0, err
 		}
