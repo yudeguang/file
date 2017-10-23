@@ -104,7 +104,7 @@ func (f *FileHelper) ReadByte(nsize int) ([]byte, error) {
 			return nil, err
 		}
 		if SurplusLen := f.GetFileLength() - currentPos; SurplusLen < int64(nsize) {
-			return nil, fmt.Errorf(strconv.Itoa(nsize) + "is too long for this readSeekerFile,it has only " +
+			return nil, fmt.Errorf(strconv.Itoa(nsize) + " is too long for this readSeekerFile,it's only " +
 				strconv.Itoa(int(SurplusLen)) + " byte left,the current position is:" + strconv.Itoa(int(currentPos)))
 		}
 	}
