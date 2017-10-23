@@ -6,26 +6,27 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
 // 文件读取对象
 type FileHelper struct {
-	pFile io.ReadSeeker
+	readSeekerFile io.ReadSeeker
 }
 
 //OS文件打开
-func (this *FileHelper) OpenOsFile(filepath string) error {
+func (f *FileHelper) OpenOsFile(filepath string) error {
 	var err error = nil
-	if this.pFile, err = os.OpenFile(filepath, os.O_RDONLY, 0x666); err != nil {
+	if f.readSeekerFile, err = os.OpenFile(filepath, os.O_RDONLY, 0x666); err != nil {
 		return err
 	}
 	return nil
 }
 
 //字节数组的打开
-func (this *FileHelper) OpenBytes(p *bytes.Reader) error {
-	this.pFile = p
+func (f *FileHelper) OpenBytes(p *bytes.Reader) error {
+	f.readSeekerFile = p
 	return nil
 	//打开案例
 	// m := &FileHelper{}
@@ -33,8 +34,8 @@ func (this *FileHelper) OpenBytes(p *bytes.Reader) error {
 }
 
 //字符串类型的打开
-func (this *FileHelper) OpenStrings(p *strings.Reader) error {
-	this.pFile = p
+func (f *FileHelper) OpenStrings(p *strings.Reader) error {
+	f.readSeekerFile = p
 	return nil
 	//打开案例
 	// m := &FileHelper{}
@@ -42,18 +43,18 @@ func (this *FileHelper) OpenStrings(p *strings.Reader) error {
 }
 
 //关闭文件
-func (this *FileHelper) Close() {
-	if this.pFile != nil {
-		if osFile, ok := this.pFile.(*os.File); ok {
+func (f *FileHelper) Close() {
+	if f.readSeekerFile != nil {
+		if osFile, ok := f.readSeekerFile.(*os.File); ok {
 			osFile.Close()
 		}
-		this.pFile = nil
+		f.readSeekerFile = nil
 	}
 }
 
 //移动到文件什么地方
-func (this *FileHelper) MoveTo(npos int64) error {
-	_, err := this.pFile.Seek(npos, os.SEEK_SET)
+func (f *FileHelper) MoveTo(npos int64) error {
+	_, err := f.readSeekerFile.Seek(npos, os.SEEK_SET)
 	if err != nil {
 		return err
 	}
@@ -61,8 +62,8 @@ func (this *FileHelper) MoveTo(npos int64) error {
 }
 
 //移动到文件末尾
-func (this *FileHelper) MoveToEnd() error {
-	_, err := this.pFile.Seek(int64(0), os.SEEK_END)
+func (f *FileHelper) MoveToEnd() error {
+	_, err := f.readSeekerFile.Seek(int64(0), os.SEEK_END)
 	if err != nil {
 		return err
 	}
@@ -70,8 +71,8 @@ func (this *FileHelper) MoveToEnd() error {
 }
 
 //从当前位置移动多少个
-func (this *FileHelper) Move(npos int64) error {
-	_, err := this.pFile.Seek(npos, os.SEEK_CUR)
+func (f *FileHelper) Move(npos int64) error {
+	_, err := f.readSeekerFile.Seek(npos, os.SEEK_CUR)
 	if err != nil {
 		return err
 	}
@@ -79,25 +80,36 @@ func (this *FileHelper) Move(npos int64) error {
 }
 
 //获得当前位置
-func (this *FileHelper) GetFilePos() (int64, error) {
-	return this.pFile.Seek(0, os.SEEK_CUR)
+func (f *FileHelper) GetFilePos() (int64, error) {
+	return f.readSeekerFile.Seek(0, os.SEEK_CUR)
 }
 
 //获得文件末尾位置
-func (this *FileHelper) GetFileEndPos() (int64, error) {
-	return this.pFile.Seek(0, os.SEEK_END)
+func (f *FileHelper) GetFileEndPos() (int64, error) {
+	return f.readSeekerFile.Seek(0, os.SEEK_END)
 }
 
 //获得文件长度
-func (this *FileHelper) GetFileLength() int64 {
-	n, _ := this.GetFileEndPos()
+func (f *FileHelper) GetFileLength() int64 {
+	n, _ := f.GetFileEndPos()
 	return n + int64(1)
 }
 
 //读取多少个字节
-func (this *FileHelper) ReadByte(nsize int) ([]byte, error) {
+func (f *FileHelper) ReadByte(nsize int) ([]byte, error) {
+	//nsize太大，可能会出现内存不足的问题，对于大于100M的内存分配，我们都预先检察一下
+	if nsize > 102400 {
+		currentPos, err := f.GetFilePos()
+		if err != nil {
+			return nil, err
+		}
+		if SurplusLen := f.GetFileLength() - currentPos; SurplusLen < int64(nsize) {
+			return nil, fmt.Errorf(strconv.Itoa(nsize) + "is too long for this readSeekerFile,it has only " +
+				strconv.Itoa(int(SurplusLen)) + " byte left,the current position is:" + strconv.Itoa(int(currentPos)))
+		}
+	}
 	bt := make([]byte, nsize)
-	n, err := this.pFile.Read(bt)
+	n, err := f.readSeekerFile.Read(bt)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +120,8 @@ func (this *FileHelper) ReadByte(nsize int) ([]byte, error) {
 }
 
 //读取转换为STRING
-func (this *FileHelper) ReadString(nsize int) (string, error) {
-	bt, err := this.ReadByte(nsize)
+func (f *FileHelper) ReadString(nsize int) (string, error) {
+	bt, err := f.ReadByte(nsize)
 	if err != nil {
 		return "", err
 	}
@@ -117,8 +129,8 @@ func (this *FileHelper) ReadString(nsize int) (string, error) {
 }
 
 //读取转换为STRING
-func (this *FileHelper) ReadStringTrimSpace(nsize int) (string, error) {
-	bt, err := this.ReadByte(nsize)
+func (f *FileHelper) ReadStringTrimSpace(nsize int) (string, error) {
+	bt, err := f.ReadByte(nsize)
 	if err != nil {
 		return "", err
 	}
@@ -127,9 +139,9 @@ func (this *FileHelper) ReadStringTrimSpace(nsize int) (string, error) {
 }
 
 //读取一个INT16数
-func (this *FileHelper) ReadInt16() (uint16, error) {
+func (f *FileHelper) ReadInt16() (uint16, error) {
 	bt := make([]byte, 2)
-	_, err := this.pFile.Read(bt)
+	_, err := f.readSeekerFile.Read(bt)
 	if err != nil {
 		return 0, err
 	}
@@ -138,9 +150,9 @@ func (this *FileHelper) ReadInt16() (uint16, error) {
 }
 
 //读取一个INT32数
-func (this *FileHelper) ReadInt32() (uint32, error) {
+func (f *FileHelper) ReadInt32() (uint32, error) {
 	bt := make([]byte, 4)
-	_, err := this.pFile.Read(bt)
+	_, err := f.readSeekerFile.Read(bt)
 	if err != nil {
 		return 0, err
 	}
@@ -150,9 +162,9 @@ func (this *FileHelper) ReadInt32() (uint32, error) {
 }
 
 //读取一个INT64数
-func (this *FileHelper) ReadInt64() (uint64, error) {
+func (f *FileHelper) ReadInt64() (uint64, error) {
 	bt := make([]byte, 8)
-	_, err := this.pFile.Read(bt)
+	_, err := f.readSeekerFile.Read(bt)
 	if err != nil {
 		return 0, err
 	}
@@ -161,11 +173,11 @@ func (this *FileHelper) ReadInt64() (uint64, error) {
 }
 
 //查找数据,从文件的npos位置开始查找sep子串，返回第1次出现的位置,npos大于等于0
-func (this *FileHelper) Index(npos int64, sep []byte) int64 {
+func (f *FileHelper) Index(npos int64, sep []byte) int64 {
 	//先算出最大长度
-	endpos, _ := this.GetFileEndPos()
+	endpos, _ := f.GetFileEndPos()
 	//防止npos超出
-	if _, err := this.pFile.Seek(npos, os.SEEK_SET); err != nil {
+	if _, err := f.readSeekerFile.Seek(npos, os.SEEK_SET); err != nil {
 		return -1
 	}
 	//取得截取的待搜索数据长度 20M
@@ -177,12 +189,12 @@ func (this *FileHelper) Index(npos int64, sep []byte) int64 {
 
 	for {
 		var data []byte
-		curPos, _ := this.GetFilePos()
+		curPos, _ := f.GetFilePos()
 		// 数据太短，显然已经读取到最后一次,最后一次则全部读取
 		if int(endpos-curPos) < nMaxSize {
-			data, _ = this.ReadByte(int(endpos - curPos))
+			data, _ = f.ReadByte(int(endpos - curPos))
 		} else {
-			data, _ = this.ReadByte(nMaxSize)
+			data, _ = f.ReadByte(nMaxSize)
 		}
 
 		newPos := bytes.Index(data, sep)
@@ -198,18 +210,18 @@ func (this *FileHelper) Index(npos int64, sep []byte) int64 {
 				return curPos + int64(newPos)
 			}
 		}
-		this.Move(int64(0 - len(sep)))
+		f.Move(int64(0 - len(sep)))
 	}
 	return -1
 }
 
 //查找数据,从文件的npos位置开始查找S子串，第N次出现的位置,N大于0，npos大于等于0
-func (this *FileHelper) IndexN(npos int64, sep []byte, n int) int64 {
+func (f *FileHelper) IndexN(npos int64, sep []byte, n int) int64 {
 	if n <= 0 {
 		return -1
 	}
 	//防止npos超出
-	if _, err := this.pFile.Seek(int64(npos), os.SEEK_SET); err != nil {
+	if _, err := f.readSeekerFile.Seek(int64(npos), os.SEEK_SET); err != nil {
 		return -1
 	}
 	var (
@@ -218,13 +230,13 @@ func (this *FileHelper) IndexN(npos int64, sep []byte, n int) int64 {
 	)
 
 	for i := 0; i < n; i++ {
-		curPos, _ := this.GetFilePos()
-		findPos = this.Index(curPos, sep)
+		curPos, _ := f.GetFilePos()
+		findPos = f.Index(curPos, sep)
 		if err != nil {
 			return -1
 		} else {
 			//找到一次，那么要移动到这个位置加SEP长度
-			this.MoveTo(findPos + int64(len(sep)))
+			f.MoveTo(findPos + int64(len(sep)))
 		}
 	}
 	return findPos
