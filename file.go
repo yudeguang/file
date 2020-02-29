@@ -1,3 +1,8 @@
+// Copyright 2020 file Author(https://github.com/yudeguang/file). All Rights Reserved.
+//
+// This Source Code Form is subject to the terms of the MIT License.
+// If a copy of the MIT was not distributed with this file,
+// You can obtain one at https://github.com/yudeguang/file.
 package file
 
 import (
@@ -48,7 +53,63 @@ func Copy(dstFileName, srcFileName string) (w int64, err error) {
 	}
 	defer dstFile.Close()
 	//通过bufio实现对大文件复制的自动支持
-	return io.Copy(bufio.NewWriter(dstFile), bufio.NewReader(srcFile))
+	dst := bufio.NewWriter(dstFile)
+	defer dst.Flush()
+	src := bufio.NewReader(srcFile)
+	w, err = io.Copy(dst, src)
+	if err != nil {
+		return 0, err
+	}
+	return w, err
+}
+
+//复制目录
+func CopyDir(dst string, src string) (err error) {
+	if src == "" {
+		return fmt.Errorf("source directory cannot be empty")
+	}
+	if dst == "" {
+		return fmt.Errorf("destination directory cannot be empty")
+	}
+	src = filepath.Clean(src)
+	dst = filepath.Clean(dst)
+	si, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !si.IsDir() {
+		return fmt.Errorf("source is not a directory")
+	}
+	if !Exist(dst) {
+		err = os.MkdirAll(dst, si.Mode())
+		if err != nil {
+			return
+		}
+	}
+	entries, err := ioutil.ReadDir(src)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+		if entry.IsDir() {
+			err = CopyDir(srcPath, dstPath)
+			if err != nil {
+				return
+			}
+		} else {
+			// Skip symlinks.
+			if entry.Mode()&os.ModeSymlink != 0 {
+				continue
+			}
+			_, err = Copy(dstPath, srcPath)
+			if err != nil {
+				return
+			}
+		}
+	}
+	return
 }
 
 //获得程序所在当前文件路径 注意末尾不包含/
