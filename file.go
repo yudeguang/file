@@ -180,6 +180,7 @@ func FileSize(path string) (int64, error) {
 }
 
 //遍历目录及下级目录，查找符合后缀文件,如果suffix为空，则查找所有文件
+//如果后缀为空，则查找任何后缀的文件
 func GetFileListBySuffix(dirPath, suffix string) (files []string, err error) {
 	if !IsDir(dirPath) {
 		return nil, fmt.Errorf("given path does not exist: %s", dirPath)
@@ -193,8 +194,12 @@ func GetFileListBySuffix(dirPath, suffix string) (files []string, err error) {
 		if fi.IsDir() { // 忽略目录
 			return nil
 		}
-		if strings.HasSuffix(strings.ToUpper(fi.Name()), suffix) {
+		if suffix == "" {
 			files = append(files, filename)
+		} else {
+			if strings.HasSuffix(strings.ToUpper(fi.Name()), suffix) {
+				files = append(files, filename)
+			}
 		}
 		return nil
 	})
@@ -202,6 +207,7 @@ func GetFileListBySuffix(dirPath, suffix string) (files []string, err error) {
 }
 
 //遍历指定目录下的所有文件，查找符合后缀文件,不进入下一级目录搜索
+//如果后缀为空，则查找任何后缀的文件
 func GetFileListJustCurrentDirBySuffix(dirPath string, suffix string) (files []string, err error) {
 	if !IsDir(dirPath) {
 		return nil, fmt.Errorf("given path does not exist: %s", dirPath)
@@ -217,8 +223,12 @@ func GetFileListJustCurrentDirBySuffix(dirPath string, suffix string) (files []s
 		if fi.IsDir() { // 忽略目录
 			continue
 		}
-		if strings.HasSuffix(strings.ToUpper(fi.Name()), suffix) {
+		if suffix == "" {
 			files = append(files, dirPath+PathSep+fi.Name())
+		} else {
+			if strings.HasSuffix(strings.ToUpper(fi.Name()), suffix) {
+				files = append(files, dirPath+PathSep+fi.Name())
+			}
 		}
 	}
 	return files, nil
